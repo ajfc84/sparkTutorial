@@ -1,5 +1,11 @@
 package com.sparkTutorial.rdd.airports;
 
+import com.sparkTutorial.rdd.commons.Utils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+
 public class AirportsInUsaProblem {
 
     public static void main(String[] args) throws Exception {
@@ -16,5 +22,15 @@ public class AirportsInUsaProblem {
            "Dowagiac Municipal Airport", "Dowagiac"
            ...
          */
+        SparkConf conf = new SparkConf().setAppName("USA_airports_finder").setMaster("local[*]");
+        JavaSparkContext sc = new JavaSparkContext(conf);
+        JavaRDD<String> rdd = sc.textFile("in/airports.text");
+        rdd
+            .filter(line -> line.split(Utils.COMMA_DELIMITER)[3].matches("\"United States\""))
+            .map(usaAirpLine -> {
+                String [] out = usaAirpLine.split(Utils.COMMA_DELIMITER);
+                return StringUtils.join(new String[] {out[1], out[2]}, ",");
+            }).saveAsTextFile("out/airports_in_usa.text");
+
     }
 }

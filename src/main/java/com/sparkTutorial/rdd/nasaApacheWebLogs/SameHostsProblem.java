@@ -1,5 +1,9 @@
 package com.sparkTutorial.rdd.nasaApacheWebLogs;
 
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+
 public class SameHostsProblem {
 
     public static void main(String[] args) throws Exception {
@@ -19,5 +23,16 @@ public class SameHostsProblem {
 
            Make sure the head lines are removed in the resulting RDD.
          */
+        SparkConf conf = new SparkConf().setAppName("Both_Days_Finder").setMaster("local[*]");
+        JavaSparkContext sc = new JavaSparkContext(conf);
+        JavaRDD<String> rdd1 = sc.textFile("in/nasa_19950701.tsv");
+        JavaRDD<String> rdd2 = sc.textFile("in/nasa_19950801.tsv");
+        JavaRDD<String> hostRdd1 = rdd1
+                .filter(line -> !line.startsWith("host"))
+                .map(line -> line.split("\t")[0]);
+        JavaRDD<String> hostRdd2 = rdd2
+                .filter(line -> !line.startsWith("host"))
+                .map(line -> line.split("\t")[0]);
+        hostRdd1.intersection(hostRdd2).saveAsTextFile("out/nasa_logs_same_hosts.csv");
     }
 }
