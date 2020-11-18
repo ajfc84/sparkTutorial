@@ -1,5 +1,12 @@
 package com.sparkTutorial.pairRdd.groupbykey;
 
+import com.sparkTutorial.rdd.commons.Utils;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import scala.Tuple2;
+
 public class AirportsByCountryProblem {
 
     public static void main(String[] args) throws Exception {
@@ -18,5 +25,13 @@ public class AirportsByCountryProblem {
            "Papua New Guinea",  ["Goroka", "Madang", ...]
            ...
          */
+        SparkConf conf = new SparkConf().setAppName("GroupByKey").setMaster("local[3]");
+        JavaSparkContext sc = new JavaSparkContext(conf);
+        JavaRDD<String> rdd = sc.textFile("in/airports.text");
+        JavaPairRDD<String, String> pairRDD = rdd.mapToPair(line -> {
+            String [] split = line.split(Utils.COMMA_DELIMITER);
+            return new Tuple2<>(split[3], split[2]);
+        });
+        pairRDD.groupByKey().saveAsTextFile("out/list_of_airports_by_country");
     }
 }
